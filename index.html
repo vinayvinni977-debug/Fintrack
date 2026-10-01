@@ -1,0 +1,186 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>FinTrack</title>
+<meta name="theme-color" content="#0a7a4f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FinTrack">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+</head><body>
+<div id="main"></div><div id="sh" onclick="if(event.target==this)closeSh()"><div id="shc"></div></div><div id="t"></div>
+<nav><button data-t="dash" onclick="go('dash')">Home</button><button data-t="people" onclick="go('people')">People</button><button class="plus" onclick="openAdd()" aria-label="Add">+</button><button data-t="txns" onclick="go('txns')">Txns</button><button data-t="due" onclick="go('due')">Due</button><button data-t="more" onclick="go('more')">More</button></nav>
+<script>
+const $=s=>document.querySelector(s),K='fintrack_v1';
+let db=null;try{db=JSON.parse(localStorage.getItem(K))}catch(e){}
+db=db||{people:[],obs:[],pays:[],ints:[],audit:[]};
+var CDB=null,cbT;const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){toast('Could not save to browser storage. Export a backup.')}clearTimeout(cbT);cbT=setTimeout(()=>cloudBackup(1),4000)};
+const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-3);
+const p2=n=>String(n).padStart(2,'0'),fISO=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()),today=()=>fISO(new Date());
+const addM=(s,n)=>{const[y,m,d]=s.split('-').map(Number),l=new Date(y,m+n,0).getDate();return fISO(new Date(y,m-1+n,Math.min(d,l)))};
+const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],fd=s=>{if(!s)return'—';const[y,m,d]=s.split('-');return +d+' '+MN[m-1]+' '+y};
+const R=p=>'₹'+(p/100).toLocaleString('en-IN',{minimumFractionDigits:p%100?2:0,maximumFractionDigits:2});
+const P=v=>Math.round(parseFloat(v)*100),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const paidOf=(o,u)=>db.pays.reduce((s,p)=>(u&&p.date>u)?s:s+p.alloc.filter(a=>a.oid===o.id).reduce((x,a)=>x+a.amt,0),0);
+const intOf=(o,u)=>db.ints.filter(i=>i.oid===o.id&&(!u||i.date<=u)).reduce((s,i)=>s+i.amt,0);
+const bal=(o,u)=>(u&&o.date>u)?0:o.principal+intOf(o,u)-paidOf(o,u);
+const live=o=>!o.deleted,act=o=>live(o)&&bal(o)>0;
+const pName=id=>(db.people.find(p=>p.id===id)||{name:'(missing)'}).name;
+const pBal=(id,d)=>db.obs.filter(o=>o.pid===id&&o.dir===d&&live(o)).reduce((s,o)=>s+bal(o),0);
+const actObs=(id,d)=>db.obs.filter(o=>o.pid===id&&o.dir===d&&act(o)).sort((a,b)=>a.due<b.due?-1:1);
+function accrue(){let c=0;db.obs.forEach(o=>{if(o.deleted)return;let g=0;while((o.interest||o.pct)&&o.due<today()&&g++<240){const b=bal(o,o.due),a=o.pct?Math.round(b*o.pct/100):o.interest;if(b>0&&a>0)db.ints.push({id:uid(),oid:o.id,date:o.due,amt:a});o.due=addM(o.due,1);c=1}});if(c)save()}
+let snap=null;
+function commit(msg,fn,audit){snap=JSON.stringify(db);fn();if(audit)db.audit.push({id:uid(),at:new Date().toISOString(),t:audit});accrue();save();closeSh();render();toast(msg,1)}
+function toast(m,u){const t=$('#t');t.innerHTML=`<span>${esc(m)}</span>${u?'<button onclick="undo()">Undo</button>':''}`;t.style.display='flex';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',u?7000:4000)}
+function undo(){if(!snap)return;db=JSON.parse(snap);snap=null;save();render();toast('Undone')}
+const S={tab:'dash',pid:null,f:'all',q:'',tf:'all'};
+function go(t){S.tab=t;S.pid=null;S.q='';render()}
+function openP(id){S.pid=id;render();scrollTo(0,0)}
+function sheet(h){$('#shc').innerHTML=h;$('#sh').classList.add('o')}function closeSh(){$('#sh').classList.remove('o')}
+function countUp(e,to){const st=performance.now();if(matchMedia('(prefers-reduced-motion:reduce)').matches||!to){e.textContent=R(to);return}const f=n=>{const k=Math.min(1,(n-st)/700);e.textContent=R(Math.round(to*(1-Math.pow(1-k,3))));if(k<1)requestAnimationFrame(f)};requestAnimationFrame(f)}
+function render(){const m=$('#main');m.style.animation='none';m.offsetHeight;m.style.animation='';
+ m.innerHTML=S.pid?vPerson():({dash:vDash,people:vPeople,txns:vTxns,due:vDue,more:vMore}[S.tab])();
+ document.querySelectorAll('nav [data-t]').forEach(b=>b.classList.toggle('on',b.dataset.t===S.tab&&!S.pid));
+ document.querySelectorAll('[data-n]').forEach(e=>countUp(e,+e.dataset.n))}
+const sumDir=d=>db.people.reduce((s,p)=>s+pBal(p.id,d),0),cnt=d=>db.people.filter(p=>pBal(p.id,d)>0).length;
+const dCtx=o=>o.due===today()?'Due today':o.due<today()?'Past due':'Upcoming';
+function obRow(o,btn){const b=bal(o);return `<div class="row"><div onclick="openOb('${o.id}')"><b>${esc(pName(o.pid))}</b> <small>${esc(o.desc||'')}</small><br><small>${b>0?dCtx(o)+' · '+fd(o.due):'Paid'}${o.pct?' · '+o.pct+'%/mo':o.interest?' · ₹'+o.interest/100+'/mo':''}${nx(o)?'<br>If unpaid after '+fd(o.due)+': '+R(bal(o)+nx(o)):''}</small></div><div style="text-align:right"><b class="${o.dir=='lent'?'gt':'rt'}" onclick="openOb('${o.id}')">${R(b)}</b><br>${b>0&&o.dir=='lent'?`<button class="sm" style="padding:2px 8px;min-height:28px" onclick="remind('${o.id}')">Remind</button>`:`<span class="pill">${b>0?'Unpaid':'Paid'}</span>`}</div></div>`}
+function recent(){const e=[];db.obs.filter(live).forEach(o=>e.push({d:o.date,k:0,t:(o.dir=='lent'?'Lent '+R(o.principal)+' to ':'Borrowed '+R(o.principal)+' from ')+pName(o.pid)}));
+ db.ints.forEach(i=>{const o=db.obs.find(x=>x.id===i.oid);if(o&&live(o))e.push({d:i.date,k:1,t:R(i.amt)+' interest added · '+pName(o.pid)})});
+ db.pays.forEach(p=>e.push({d:p.date,k:2,t:pName(p.pid)+(p.settle?' settled ':(p.dir=='lent'?' repaid ':' — you paid ')+' ')+R(p.amt)}));
+ return e.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.k-a.k).slice(0,8).map(x=>`<div class="row"><span>${esc(x.t)}</span><small>${fd(x.d)}</small></div>`).join('')||'<p class="mu">No activity yet.</p>'}
+function vDash(){const h=new Date().getHours(),L=sumDir('lent'),O=sumDir('owe');
+ const top=d=>db.people.map(p=>[p,pBal(p.id,d)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([p,b])=>`<div class="row" onclick="openP('${p.id}')"><span>${esc(p.name)}</span><b>${R(b)}</b></div>`).join('');
+ const dt=db.obs.filter(o=>act(o)&&o.due===today());
+ return `<h1>FinTrack</h1><p class="mu">Good ${h<12?'morning':h<17?'afternoon':'evening'}</p>
+ <div class="hero"><div class="card g"><small>Others owe me</small><h2 class="gt" data-n="${L}">${R(L)}</h2><small>${cnt('lent')} people</small></div><div class="card r"><small>I owe</small><h2 class="rt" data-n="${O}">${R(O)}</h2><small>${cnt('owe')} people</small></div></div>
+ ${dt.length?`<h3>Due today</h3>${dt.map(o=>`<div class="card due"><b>${esc(pName(o.pid))}</b> <small>${esc(o.desc||'')}</small><h3 style="margin:4px 0">${R(bal(o))} <span class="pill">Unpaid</span></h3><button class="sm" onclick="openRepay('${o.pid}','${o.dir}')">Record payment</button> <button class="sm" onclick="remind('${o.id}')">Remind</button></div>`).join('')}`:''}
+ ${top('lent')?`<h3>Others owe me</h3><div class="card">${top('lent')}</div>`:''}${top('owe')?`<h3>I owe</h3><div class="card">${top('owe')}</div>`:''}
+ ${!db.obs.length?'<div class="card"><b>Your ledger is empty.</b><br><small>Tap + to record money you lent or owe.</small></div>':''}
+ <h3>Recent activity</h3><div class="card">${recent()}</div>`}
+function chips(k,arr){return `<div class="chips">${arr.map(([v,l])=>`<button class="${S[k]==v?'on':''}" onclick="S.${k}='${v}';render()">${l}</button>`).join('')}</div>`}
+function srch(){return `<input placeholder="Search name, description, notes" value="${esc(S.q)}" oninput="S.q=this.value;clearTimeout(window.st);window.st=setTimeout(()=>{const p=this.selectionStart;render();const i=$('input');i.focus();i.setSelectionRange(p,p)},250)">`}
+const hit=o=>!S.q||(pName(o.pid)+' '+o.desc+' '+o.notes).toLowerCase().includes(S.q.toLowerCase());
+function vPeople(){const f=S.f;const ps=db.people.filter(p=>(!S.q||p.name.toLowerCase().includes(S.q.toLowerCase())||db.obs.some(o=>o.pid===p.id&&hit(o)))&&(f=='all'||(f=='lent'&&pBal(p.id,'lent')>0)||(f=='owe'&&pBal(p.id,'owe')>0)||(f=='settled'&&!pBal(p.id,'lent')&&!pBal(p.id,'owe'))));
+ return `<h1>People</h1>${srch()}${chips('f',[['all','All'],['lent','Others owe me'],['owe','I owe'],['settled','Settled']])}<div class="card">${ps.map(p=>{const a=pBal(p.id,'lent'),b=pBal(p.id,'owe');return `<div class="row" onclick="openP('${p.id}')"><b>${esc(p.name)}</b><span>${a?`<b class="gt">${R(a)}</b> `:''}${b?`<b class="rt">${R(b)}</b>`:''}${!a&&!b?'<span class="pill">Settled</span>':''}</span></div>`}).join('')||'<p class="mu">No one here yet.</p>'}</div>`}
+function vTxns(){const f=S.tf,os=db.obs.filter(o=>hit(o)&&(f=='del'?o.deleted:live(o)&&(f=='all'||(f=='unpaid'&&bal(o)>0)||(f=='paid'&&bal(o)<=0)||(f=='lent'&&o.dir=='lent')||(f=='owe'&&o.dir=='owe')))).sort((a,b)=>a.date<b.date?1:-1);
+ return `<h1>Transactions</h1>${srch()}${chips('tf',[['all','All'],['unpaid','Unpaid'],['paid','Paid'],['lent','Others owe me'],['owe','I owe'],['del','Deleted']])}<div class="card">${os.map(o=>obRow(o)).join('')||'<p class="mu">Nothing found.</p>'}</div>`}
+function vDue(){const os=db.obs.filter(act).sort((a,b)=>a.due<b.due?-1:1),g=(l,fn)=>{const x=os.filter(fn);return x.length?`<h3>${l}</h3><div class="card">${x.map(o=>obRow(o)).join('')}</div>`:''};
+ return `<h1>Due</h1>${g('Past due',o=>o.due<today())}${g('Due today',o=>o.due==today())}${g('Upcoming',o=>o.due>today())}${os.length?'':'<div class="card">Nothing is due. Your ledger is clear ✓</div>'}`}
+function vPerson(){const p=db.people.find(x=>x.id===S.pid);if(!p){S.pid=null;return vDash()}
+ const os=db.obs.filter(o=>o.pid===p.id&&live(o));
+ const blk=d=>{const x=os.filter(o=>o.dir===d);if(!x.length)return'';const b=pBal(p.id,d),a=x.filter(act),nx=a.map(o=>o.due).sort()[0];
+  return `<div class="card ${d=='lent'?'g':'r'}"><small>${d=='lent'?'Others owe me':'I owe'} · balance as of ${fd(today())}</small><h2 class="${d=='lent'?'gt':'rt'}">${R(b)}</h2>
+  <small>${d=='lent'?'Total lent':'Total borrowed'} ${R(x.reduce((s,o)=>s+o.principal,0))} · Repaid ${R(x.reduce((s,o)=>s+paidOf(o),0))} · Active ${a.length} · Next due ${fd(nx)}</small>
+  ${b>0?`<br><button class="sm" onclick="openRepay('${p.id}','${d}')">Record payment</button> <button class="sm" onclick="settle('${p.id}','${d}')">Settle account</button>`:'<div class="paid">✓ Settled</div>'}</div>`};
+ const hs=[];db.pays.filter(y=>y.pid===p.id).forEach(y=>hs.push([y.date,(y.settle?'Settled ':'Payment ')+R(y.amt)]));db.ints.forEach(i=>{const o=db.obs.find(x=>x.id===i.oid);if(o&&o.pid===p.id&&live(o))hs.push([i.date,'Interest +'+R(i.amt)])});hs.sort().reverse();
+ return `<button class="sm" onclick="S.pid=null;render()">← Back</button><h1>${esc(p.name)}</h1><button class="sm" onclick="openMerge('${p.id}')">Merge duplicate</button>${blk('lent')}${blk('owe')}
+ <h3>Active transactions</h3><div class="card">${os.filter(act).map(o=>obRow(o)).join('')||'<small>None</small>'}</div>
+ <h3>Settled transactions</h3><div class="card">${os.filter(o=>!act(o)).map(o=>obRow(o)).join('')||'<small>None</small>'}</div>
+ <h3>Payments &amp; interest</h3><div class="card">${hs.map(h=>`<div class="row"><span>${esc(h[1])}</span><small>${fd(h[0])}</small></div>`).join('')||'<small>None</small>'}</div>`}
+function timeline(o){const ev=[{d:o.date,t:(o.dir=='lent'?'Lent ':'Borrowed ')+R(o.principal),a:o.principal,k:0}];
+ db.ints.filter(i=>i.oid===o.id).forEach(i=>ev.push({d:i.date,t:'Interest +'+R(i.amt),a:i.amt,k:1,id:i.id}));
+ db.pays.forEach(p=>p.alloc.filter(a=>a.oid===o.id).forEach(a=>ev.push({d:p.date,t:(p.settle?'Settlement ':'Payment ')+R(a.amt),a:-a.amt,k:2})));
+ ev.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.k-b.k);let b=0;
+ return ev.map(e=>{b+=e.a;return `<div class="tl"><b>${fd(e.d)}</b> ${e.t}${e.id?` <a onclick="editInt('${e.id}')">edit</a>`:''}<br><small>Balance ${R(b)}</small></div>`}).join('')+(b<=0?'<div class="paid">✓ Paid</div>':'')}
+function openOb(id){const o=db.obs.find(x=>x.id===id);sheet(`<h3>${esc(pName(o.pid))} · ${esc(o.desc||'Transaction')}</h3><small>${esc(o.notes||'')}</small><h2>${R(bal(o))}</h2>${nx(o)?`<small>If unpaid after ${fd(o.due)}: ${R(bal(o)+nx(o))}</small>`:''}${timeline(o)}
+ <div style="margin-top:10px">${o.deleted?`<button class="sm" onclick="delOb('${id}',0)">Restore</button>`:`<button class="sm" onclick="openEdit('${id}')">Edit</button> <button class="sm" onclick="delOb('${id}',1)">Delete</button>`}</div>`)}
+function editInt(id){const i=db.ints.find(x=>x.id===id);sheet(`<h3>Edit interest · ${fd(i.date)}</h3><small>Only this cycle changes.</small><input id="ii" type="number" step="any" value="${i.amt/100}"><button class="pri" onclick="saveInt('${id}')">Save</button>`)}
+function saveInt(id){const i=db.ints.find(x=>x.id===id),n=P($('#ii').value);if(!(n>=0))return toast('Enter a valid amount');commit('Interest updated',()=>{i.amt=n},`Interest ${fd(i.date)} ${R(i.amt)} → ${R(n)}`)}
+function sure(m,f){window._f=f;sheet(`<h3>Please confirm</h3><p>${esc(m)}</p><button class="pri" onclick="_f()">Confirm</button><button class="pri" style="background:var(--cd);color:var(--tx)" onclick="closeSh()">Cancel</button>`)}
+const nm=(s,d)=>{const[y,m]=s.split('-').map(Number);return fISO(new Date(y,m,d))};
+const nx=o=>{const b=bal(o);return b>0?(o.pct?Math.round(b*o.pct/100):o.interest||0):0};
+function lPrev(){const a=P($('#fa').value),v=parseFloat($('#fi').value);if(!(a>0)||!(v>0)){$('#ip').textContent='';return}const x=$('#ft').value=='p'?Math.round(a*v/100):Math.round(v*100);$('#ip').innerHTML=`Charge ${R(x)} added now · <b>${R(a+x)}</b> to pay by ${fd($('#fu').value)}. If unpaid, another charge is added on that date.`}
+function openEdit(id){const o=db.obs.find(x=>x.id===id);sheet(`<h3>Edit transaction</h3><label>Amount ₹<input id="ea" type="number" step="any" value="${o.principal/100}" oninput="ePrev('${id}')"></label><input id="ex" value="${esc(o.desc)}" placeholder="Description"><input id="eo" value="${esc(o.notes)}" placeholder="Notes"><label>Next due date<input id="eu" type="date" value="${o.due}"></label><div style="display:flex;gap:6px"><select id="et" style="width:110px"><option value="a">₹ / month</option><option value="p" ${o.pct?'selected':''}>% / month</option></select><input id="ei" type="number" step="any" value="${o.pct||o.interest/100||''}" placeholder="Interest"></div><p id="ev" class="mu"></p><button class="pri" onclick="saveEdit('${id}')">Confirm changes</button>`);ePrev(id)}
+function ePrev(id){const o=db.obs.find(x=>x.id===id),n=P($('#ea').value);$('#ev').textContent=n>0?`Balance ${R(bal(o))} → ${R(n+intOf(o)-paidOf(o))} (past interest and payments unchanged)`:''}
+function saveEdit(id){const o=db.obs.find(x=>x.id===id),n=P($('#ea').value),du=$('#eu').value,pc=$('#et').value=='p',v=parseFloat($('#ei').value)||0;
+ if(!(n>0)||!du||!(v>=0)||(pc&&v>100))return toast('Check amount, due date and interest');if(n+intOf(o)-paidOf(o)<0)return toast('Payments already exceed the new amount');
+ commit('Transaction updated',()=>{o.principal=n;o.desc=$('#ex').value.trim();o.notes=$('#eo').value.trim();o.due=du;o.pct=pc?v:0;o.interest=pc?0:Math.round(v*100)},`Edited ${pName(o.pid)} transaction (amount ${R(o.principal)} → ${R(n)}, due ${fd(du)})`)}
+function delOb(id,d){const o=db.obs.find(x=>x.id===id),go=()=>commit(d?'Deleted':'Restored',()=>{o.deleted=!!d},(d?'Deleted ':'Restored ')+pName(o.pid)+' '+R(o.principal));d?sure('Delete this transaction? You can restore it from Txns → Deleted.',go):go()}
+function settle(pid,d){const os=actObs(pid,d),t=pBal(pid,d);sure(`Settle ${pName(pid)}'s balance of ${R(t)}? This records a settlement and sets it to ₹0.`,()=>commit(pName(pid)+' settled ✓',()=>db.pays.push({id:uid(),pid,dir:d,date:today(),amt:t,settle:1,alloc:os.map(o=>({oid:o.id,amt:bal(o)}))}),`Settled ${pName(pid)} ${R(t)}`))}
+
+function remind(id){const o=db.obs.find(x=>x.id===id),p=db.people.find(x=>x.id===o.pid),b=bal(o);
+ const msg=`Hi ${p.name}, a reminder that ${R(b)}${o.desc?' ('+o.desc+')':''} is due on ${fd(o.due)}.`;
+ sheet(`<h3>Remind ${esc(p.name)}</h3><label>Phone (with country code, optional, saved for next time)<input id="rp" value="${esc(p.phone||'')}" placeholder="e.g. 91XXXXXXXXXX"></label><textarea id="rm" style="height:90px">${esc(msg)}</textarea>
+ <button class="pri" onclick="sendRemind('${id}')">Open in WhatsApp</button><button class="pri" style="background:var(--cd);color:var(--tx)" onclick="try{navigator.clipboard.writeText($('#rm').value);toast('Copied')}catch(e){toast('Select and copy the text')}">Copy text</button>`)}
+function sendRemind(id){const o=db.obs.find(x=>x.id===id),p=db.people.find(x=>x.id===o.pid),ph=$('#rp').value.replace(/[^0-9]/g,''),m=encodeURIComponent($('#rm').value);
+ if(ph&&ph!==p.phone){p.phone=ph;save()}
+ window.open('https://wa.me/'+(ph||'')+'?text='+m,'_blank')}
+
+
+let CS=[{pid:'',amt:''}];
+function openCard(){sheet(cardHtml())}
+function cardHtml(){return `<h3>Credit card split</h3><input id="cn" placeholder="Card name (e.g. HSBC)"><input id="ca" type="number" step="any" placeholder="Total card charge ₹" oninput="csRender()">
+ <label>Date<input id="cd" type="date" value="${today()}"></label><label>First due date<input id="cu" type="date" value="${nm(today(),2)}"></label>
+ <small>Split across people — each gets their own due date later via Edit</small><div id="csrows">${csRows()}</div>
+ <button class="sm" onclick="CS.push({pid:'',amt:''});csRender()">+ Add person</button><p id="cv" class="mu"></p><button class="pri" id="sv" onclick="saveCard()">Save split</button>`}
+function csRows(){return CS.map((r,i)=>`<div class="row"><select onchange="CS[${i}].pid=this.value;csRender()" style="width:${r.pid=='__new'?'0;display:none':'40%'}"><option value="">Person…</option>${db.people.map(p=>`<option value="${p.id}" ${p.id==r.pid?'selected':''}>${esc(p.name)}</option>`).join('')}<option value="__new" ${r.pid=='__new'?'selected':''}>+ New person</option></select>${r.pid=='__new'?`<input placeholder="New person name" value="${esc(r.nm||'')}" oninput="CS[${i}].nm=this.value" style="width:40%">`:''}<input type="number" step="any" placeholder="₹" value="${r.amt}" oninput="CS[${i}].amt=this.value;csRender()" style="width:30%"><button class="sm" onclick="CS.splice(${i},1);csRender()">✕</button></div>`).join('')}
+function csRender(){const h=$('#csrows');if(h)h.innerHTML=csRows();const t=P($('#ca').value)||0,s=CS.reduce((a,r)=>a+(P(r.amt)||0),0),rem=t-s;const v=$('#cv');if(v)v.innerHTML=rem===0?'Matched: ₹0 remaining':`<b class="rt">⚠ Allocation mismatch: ${R(Math.abs(rem))} ${rem>0?'unallocated':'over-allocated'}</b>`}
+function saveCard(){const sv=$('#sv');if(sv.disabled)return;const nm_=$('#cn').value.trim(),t=P($('#ca').value),dt=$('#cd').value,du=$('#cu').value,t2=CS.reduce((a,r)=>a+(P(r.amt)||0),0);
+ if(!nm_||!(t>0)||!dt||!du)return toast('Enter card name, amount and dates');if(t2!==t)return toast('Allocation mismatch — the split must add up to the total');
+ if(CS.some(r=>!r.pid||!(P(r.amt)>0)||(r.pid=='__new'&&!r.nm?.trim())))return toast('Each row needs a person and amount');
+ sv.disabled=true;commit(`Card split saved for ${nm_}`,()=>{const pid=uid();CS.forEach(r=>{let p=r.pid=='__new'?null:db.people.find(x=>x.id===r.pid);if(!p){p={id:uid(),name:r.nm.trim()};db.people.push(p)}db.obs.push({id:uid(),pid:p.id,dir:'lent',principal:P(r.amt),date:dt,due:du,interest:0,pct:0,desc:nm_,notes:'Credit card split · parent total '+R(t2),deleted:0,parent:pid})})},`Card split ${nm_} ${R(t)} across ${CS.length} people`);CS=[{pid:'',amt:''}]}
+
+
+function openMerge(id){const me=db.people.find(x=>x.id===id),ot=db.people.filter(x=>x.id!==id);
+ if(!ot.length)return toast('No other people to merge with');
+ sheet(`<h3>Merge into ${esc(me.name)}</h3><small>Pick the duplicate person — all their transactions, payments and interest move to ${esc(me.name)}, and they are removed.</small><select id="mg">${ot.map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('')}</select><button class="pri" onclick="confirmMerge('${id}')">Continue</button>`)}
+function confirmMerge(id){const dup=$('#mg').value,me=db.people.find(x=>x.id===id),d=db.people.find(x=>x.id===dup);
+ sure(`Merge ${esc(d.name)} into ${esc(me.name)}? ${esc(d.name)} will be removed and their records reassigned to ${esc(me.name)}.`,()=>commit(`Merged ${d.name} into ${me.name}`,()=>{
+  db.obs.filter(o=>o.pid===dup).forEach(o=>o.pid=id);db.pays.filter(p=>p.pid===dup).forEach(p=>p.pid=id);
+  db.people=db.people.filter(p=>p.id!==dup)},`Merged person ${d.name} into ${me.name}`))}
+
+function openAdd(){sheet(`<h3>Add</h3><div class="g3"><button onclick="openLend('lent')">I lent</button><button onclick="openLend('owe')">I owe</button><button onclick="openRepay()">Repayment</button></div><button class="sm" style="margin-top:8px;width:100%" onclick="openCard()">Credit card split</button>`)}
+function openLend(d){sheet(`<h3>${d=='lent'?'I lent':'I owe'}</h3><input id="fn" list="pl" placeholder="Person" autocomplete="off"><datalist id="pl">${db.people.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist>
+ <input id="fa" type="number" inputmode="decimal" placeholder="Amount ₹" oninput="lPrev()"><label>Date<input id="fdt" type="date" value="${today()}"></label><label>First due date<input id="fu" type="date" value="${nm(today(),2)}" oninput="lPrev()"></label>
+ <div style="display:flex;gap:6px"><select id="ft" style="width:110px" onchange="lPrev()"><option value="p">% / month</option><option value="a">₹ / month</option></select><input id="fi" type="number" step="any" inputmode="decimal" placeholder="Interest (optional)" oninput="lPrev()"></div><p id="ip" class="mu"></p><input id="fx" placeholder="Description"><input id="fo" placeholder="Notes (optional)"><button class="pri" id="sv" onclick="saveLend('${d}')">Save</button>`)}
+function saveLend(d){const sv=$('#sv');if(sv.disabled)return;const nm=$('#fn').value.trim(),a=P($('#fa').value),pc=$('#ft').value=='p',iv=parseFloat($('#fi').value)||0,i=pc?0:Math.round(iv*100),dt=$('#fdt').value,du=$('#fu').value;
+ if(!nm||!(a>0)||!dt||!du||!(i>=0)||!(iv>=0)||(pc&&iv>100))return toast('Enter person, amount, date and due date');if(du<dt)return toast('Due date is before the transaction date');sv.disabled=true;
+ commit(`${R(a)} ${d=='lent'?'lent to':'borrowed from'} ${nm}`,()=>{let p=db.people.find(x=>x.name.toLowerCase()==nm.toLowerCase());if(!p){p={id:uid(),name:nm};db.people.push(p)}
+  const o={id:uid(),pid:p.id,dir:d,principal:a,date:dt,due:du,interest:i,pct:pc?iv:0,desc:$('#fx').value.trim(),notes:$('#fo').value.trim(),deleted:0};db.obs.push(o);const c=pc?Math.round(a*iv/100):i;if(c>0)db.ints.push({id:uid(),oid:o.id,date:dt,amt:c})},`Created ${d} ${R(a)} ${nm}`)}
+let RP={};function openRepay(pid,d){RP={pid:pid||null,dir:d||'lent'};rpDraw()}
+function rpDraw(){const ps=db.people.filter(p=>pBal(p.id,RP.dir)>0);if(!ps.find(p=>p.id===RP.pid))RP.pid=ps[0]&&ps[0].id;const os=RP.pid?actObs(RP.pid,RP.dir):[];
+ sheet(`<h3>Repayment</h3><select onchange="RP.dir=this.value;rpDraw()"><option value="lent" ${RP.dir=='lent'?'selected':''}>They paid me</option><option value="owe" ${RP.dir=='owe'?'selected':''}>I paid them</option></select>
+ ${ps.length?`<select onchange="RP.pid=this.value;rpDraw()">${ps.map(p=>`<option value="${p.id}" ${p.id==RP.pid?'selected':''}>${esc(p.name)}</option>`).join('')}</select><p>Current balance <b>${R(pBal(RP.pid,RP.dir))}</b></p>
+ <input id="ra" type="number" inputmode="decimal" placeholder="Repayment ₹" oninput="autoAlloc()"><input id="rd" type="date" value="${today()}"><small>Allocation (earliest due first, editable)</small>
+ ${os.map(o=>`<div class="row"><span>${esc(o.desc||'Txn')} <small>${R(bal(o))} · due ${fd(o.due)}</small></span><input style="width:110px" class="ai" data-b="${bal(o)}" data-o="${o.id}" type="number" step="any" oninput="chk()"></div>`).join('')}
+ <p id="rem" class="mu"></p><button class="pri" id="sv" onclick="saveRepay()">Confirm</button>`:'<p class="mu">No one has a balance here.</p>'}`)}
+function autoAlloc(){let r=P($('#ra').value)||0;document.querySelectorAll('.ai').forEach(i=>{const x=Math.max(0,Math.min(r,+i.dataset.b));i.value=x?x/100:'';r-=x});chk()}
+function chk(){const a=P($('#ra').value)||0;let s=0;document.querySelectorAll('.ai').forEach(i=>s+=P(i.value||0)||0);const l=a-s;$('#rem').innerHTML=l==0?'Remaining to allocate: ₹0':`<b class="rt">${l>0?'Remaining to allocate '+R(l):'Allocated '+R(-l)+' more than the repayment'}</b>`}
+function saveRepay(){const sv=$('#sv');if(sv.disabled)return;const a=P($('#ra').value),dt=$('#rd').value,al=[];let s=0;
+ document.querySelectorAll('.ai').forEach(i=>{const v=P(i.value||0)||0;if(v<0)s=NaN;if(v>0){al.push({oid:i.dataset.o,amt:v});s+=v;if(v>+i.dataset.b)s=NaN}});
+ if(!(a>0)||!dt)return toast('Enter amount and date');if(a>pBal(RP.pid,RP.dir))return toast('Repayment exceeds current balance');if(s!==a)return toast('Allocation must equal the repayment, within each balance');sv.disabled=true;
+ commit(`${R(a)} recorded for ${pName(RP.pid)}`,()=>db.pays.push({id:uid(),pid:RP.pid,dir:RP.dir,date:dt,amt:a,alloc:al}),`Repayment ${R(a)} ${pName(RP.pid)}`)}
+function checks(){const e=[],ids=new Set();[...db.people,...db.obs,...db.pays,...db.ints].forEach(x=>{if(ids.has(x.id))e.push('Duplicate ID '+x.id);ids.add(x.id)});
+ db.obs.forEach(o=>{if(!db.people.find(p=>p.id===o.pid))e.push('Missing person on '+(o.desc||o.id));if(!o.due)e.push('Missing due date: '+(o.desc||o.id));if(bal(o)<0)e.push('Negative balance: '+pName(o.pid)+' '+(o.desc||''))});
+ db.ints.forEach(i=>{if(!db.obs.find(o=>o.id===i.oid))e.push('Orphan interest event '+i.id)});
+ db.pays.forEach(p=>{const s=p.alloc.reduce((x,a)=>x+a.amt,0);if(s!==p.amt)e.push('Allocation ≠ payment: '+pName(p.pid)+' '+fd(p.date));p.alloc.forEach(a=>{if(!db.obs.find(o=>o.id===a.oid))e.push('Payment points to missing transaction')})});return e}
+
+let SM=today().slice(0,7);
+function monthSummary(){const[y,mo]=SM.split('-'),lab=new Date(+y,+mo-1,1).toLocaleString('en',{month:'long',year:'numeric'});
+ const inM=d=>d&&d.slice(0,7)===SM;
+ const lent=db.obs.filter(o=>live(o)&&o.dir=='lent'&&inM(o.date)).reduce((s,o)=>s+o.principal,0);
+ const borrowed=db.obs.filter(o=>live(o)&&o.dir=='owe'&&inM(o.date)).reduce((s,o)=>s+o.principal,0);
+ const recv=db.pays.filter(p=>p.dir=='lent'&&!p.settle&&inM(p.date)).reduce((s,p)=>s+p.amt,0);
+ const paid=db.pays.filter(p=>p.dir=='owe'&&!p.settle&&inM(p.date)).reduce((s,p)=>s+p.amt,0);
+ const intr=db.ints.filter(i=>inM(i.date)&&(()=>{const o=db.obs.find(x=>x.id===i.oid);return o&&live(o)&&o.dir=='lent'})()).reduce((s,i)=>s+i.amt,0);
+ return `<div class="row"><button class="sm" onclick="SM=addM(SM+'-01',-1).slice(0,7);$('#msum').innerHTML=monthSummary()">‹</button><b>${lab}</b><button class="sm" onclick="SM=addM(SM+'-01',1).slice(0,7);$('#msum').innerHTML=monthSummary()">›</button></div>
+ <div class="row"><span>Lent out</span><b class="gt">${R(lent)}</b></div><div class="row"><span>Received</span><b class="gt">${R(recv)}</b></div><div class="row"><span>Interest collected</span><b class="gt">${R(intr)}</b></div>
+ <div class="row"><span>Borrowed</span><b class="rt">${R(borrowed)}</b></div><div class="row"><span>Paid out</span><b class="rt">${R(paid)}</b></div>`}
+
+function vMore(){return `<h1>More</h1><h3>Monthly summary</h3><div class="card" id="msum">${monthSummary()}</div>
+<div class="card"><div class="row"><span>Cloud backup <small>(daily, automatic)</small></span><span><button class="sm" onclick="cloudBackup()">Back up now</button> <button class="sm" onclick="cloudRestore()">Restore</button></span></div><div class="row"><span>Data check</span><button class="sm" onclick="showChk()">Run</button></div><div class="row"><span>Export JSON</span><button class="sm" onclick="exp('j')">Open</button></div><div class="row"><span>Export CSV</span><button class="sm" onclick="exp('c')">Open</button></div><div class="row"><span>Import / restore</span><button class="sm" onclick="imp()">Open</button></div></div>
+ <h3>Audit trail</h3><div class="card">${db.audit.slice().reverse().slice(0,25).map(a=>`<div class="row"><span>${esc(a.t)}</span><small>${fd(a.at.slice(0,10))}</small></div>`).join('')||'<small>No entries yet.</small>'}</div><small>Data lives in this browser. Export a backup regularly.</small>`}
+function showChk(){const e=checks();sheet(`<h3>Data check</h3>${e.length?e.map(x=>`<div class="row rt">${esc(x)}</div>`).join('')+'<small>Nothing was changed automatically.</small>':'<div class="paid">✓ No problems found</div>'}`)}
+function exp(k){let t;if(k=='j')t=JSON.stringify(db);else{t='person,direction,description,date,principal,due,balance,status\n'+db.obs.map(o=>[pName(o.pid),o.dir,o.desc,o.date,o.principal/100,o.due,bal(o)/100,o.deleted?'deleted':bal(o)>0?'unpaid':'paid'].map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n')}
+ sheet(`<h3>${k=='j'?'JSON backup':'CSV'}</h3><textarea id="ex" readonly>${esc(t)}</textarea><button class="pri" onclick="$('#ex').select();try{navigator.clipboard.writeText($('#ex').value);toast('Copied')}catch(e){toast('Select and copy the text')}">Copy</button>`)}
+function imp(){sheet(`<h3>Import / restore</h3><small>Paste a JSON backup. This replaces current data.</small><textarea id="im"></textarea><button class="pri" onclick="doImp()">Restore</button>`)}
+function doImp(){try{const d=JSON.parse($('#im').value);if(!d.people||!d.obs||!d.pays||!d.ints)throw 0;sure('Replace all current data with this backup?',()=>commit('Backup restored',()=>{db=Object.assign({audit:[]},d)},'Restored backup'))}catch(e){toast('That is not a valid FinTrack backup')}}
+(function(){try{if(localStorage.getItem('ft_seed1'))return}catch(e){return}const D={"people":[{"id":"p1","name":"Jagdish"},{"id":"p2","name":"Pranith"},{"id":"p3","name":"Gunny"},{"id":"p4","name":"Velaru"},{"id":"p5","name":"Tushar"},{"id":"p6","name":"Sudheer"},{"id":"p7","name":"Vikas"},{"id":"p8","name":"Kalyan"}],"obs":[{"id":"o1","pid":"p1","dir":"lent","principal":3000000,"date":"2026-08-16","due":"2026-10-02","interest":0,"pct":0,"desc":"","notes":"","deleted":0},{"id":"o2","pid":"p2","dir":"lent","principal":650000,"date":"2026-08-16","due":"2026-10-02","interest":0,"pct":0,"desc":"","notes":"Partially received in old app","deleted":0},{"id":"o3","pid":"p3","dir":"lent","principal":12369800,"date":"2026-08-16","due":"2026-10-02","interest":0,"pct":0,"desc":"ICICI Credit Card","notes":"","deleted":0},{"id":"o4","pid":"p4","dir":"lent","principal":310000,"date":"2026-08-16","due":"2026-09-02","interest":0,"pct":0,"desc":"HSBC Credit Card","notes":"","deleted":0},{"id":"o5","pid":"p5","dir":"lent","principal":330000,"date":"2026-08-16","due":"2026-10-02","interest":0,"pct":0,"desc":"","notes":"","deleted":0},{"id":"o6","pid":"p6","dir":"lent","principal":5180000,"date":"2026-08-16","due":"2026-10-02","interest":0,"pct":0,"desc":"ICICI Credit Card","notes":"","deleted":0},{"id":"o7","pid":"p7","dir":"lent","principal":2500000,"date":"2026-09-04","due":"2026-10-02","interest":0,"pct":0,"desc":"HSBC Credit Card","notes":"","deleted":0},{"id":"o8","pid":"p8","dir":"lent","principal":397600,"date":"2026-09-11","due":"2026-10-02","interest":0,"pct":0,"desc":"Myntra","notes":"HSBC Credit Card","deleted":0},{"id":"o9","pid":"p5","dir":"lent","principal":300000,"date":"2026-09-18","due":"2026-10-02","interest":0,"pct":0,"desc":"HSBC Credit Card","notes":"","deleted":0},{"id":"o10","pid":"p2","dir":"lent","principal":300000,"date":"2026-09-18","due":"2026-10-02","interest":0,"pct":0,"desc":"HSBC Credit Card","notes":"","deleted":0},{"id":"o11","pid":"p2","dir":"lent","principal":700000,"date":"2026-09-18","due":"2026-10-02","interest":0,"pct":0,"desc":"Jaggu Money","notes":"","deleted":0},{"id":"o12","pid":"p6","dir":"lent","principal":50000,"date":"2026-09-28","due":"2026-10-02","interest":0,"pct":0,"desc":"Trip","notes":"Trip vi pranith gani nundi nak ochevi","deleted":0}],"ints":[{"id":"i1","oid":"o3","date":"2026-09-02","amt":281500},{"id":"i2","oid":"o6","date":"2026-09-02","amt":103600},{"id":"i3","oid":"o9","date":"2026-09-18","amt":6000},{"id":"i4","oid":"o10","date":"2026-09-18","amt":6000}],"pays":[{"id":"y1","pid":"p4","dir":"lent","date":"2026-09-02","amt":310000,"alloc":[{"oid":"o4","amt":310000}]}]};const m={};D.people.forEach(p=>{let x=db.people.find(q=>q.name.toLowerCase()==p.name.toLowerCase());if(!x){x={id:p.id,name:p.name};db.people.push(x)}m[p.id]=x.id});const has=id=>[...db.obs,...db.ints,...db.pays].some(z=>z.id===id);D.obs.forEach(x=>{if(!has(x.id))db.obs.push({...x,pid:m[x.pid]})});D.ints.forEach(x=>{if(!has(x.id))db.ints.push(x)});D.pays.forEach(x=>{if(!has(x.id))db.pays.push({...x,pid:m[x.pid]})});db.audit.push({id:uid(),at:new Date().toISOString(),t:'Imported data from old FinTrack'});save();try{localStorage.setItem('ft_seed1','1')}catch(e){}})();
+function cloud(){if(!window.claude||!claude.use)return;claude.use('db').then(d=>{CDB=d;if(!d)return;let l='';try{l=localStorage.getItem('ft_cb')||''}catch(e){}if(l!==today())cloudBackup(1)}).catch(()=>{})}
+function cloudBackup(a){if(!CDB)return a?0:toast('Cloud backup is not available here. Use Export JSON.');const o={at:new Date().toISOString(),json:JSON.stringify(db)};Promise.all([CDB.doc('backups/'+today()).set(o),CDB.doc('backups/latest').set(o)]).then(()=>{try{localStorage.setItem('ft_cb',today())}catch(e){}if(!a)toast('Cloud backup saved')}).catch(e=>{if(!a)toast('Cloud backup failed: '+((e&&e.code)||'error'))})}
+function cloudRestore(){if(!CDB)return toast('Cloud backup is not available here');CDB.doc('backups/latest').get().then(s=>{if(!s.exists)return toast('No cloud backup yet');const d=s.data();sure('Restore the cloud backup from '+fd(d.at.slice(0,10))+'? This replaces current data.',()=>commit('Cloud backup restored',()=>{db=Object.assign({audit:[]},JSON.parse(d.json))},'Restored cloud backup'))}).catch(()=>toast('Could not read the cloud backup'))}
+cloud();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+accrue();render();
+</script></body></html>
