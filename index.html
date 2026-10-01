@@ -42,7 +42,7 @@ textarea{width:100%;height:160px;background:var(--cd);color:var(--tx);border:1px
 const $=s=>document.querySelector(s),K='fintrack_v1';
 let db=null;try{db=JSON.parse(localStorage.getItem(K))}catch(e){}
 db=db||{people:[],obs:[],pays:[],ints:[],audit:[]};
-var CDB=null,cbT;const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){toast('Could not save to browser storage. Export a backup.')}clearTimeout(cbT);cbT=setTimeout(()=>cloudBackup(1),4000)};
+var ghT;const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){toast('Could not save to browser storage. Export a backup.')}clearTimeout(ghT);ghT=setTimeout(()=>{if(localStorage.getItem('gh_tok'))ghBackup(1)},5000)};
 const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-3);
 const p2=n=>String(n).padStart(2,'0'),fISO=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()),today=()=>fISO(new Date());
 const addM=(s,n)=>{const[y,m,d]=s.split('-').map(Number),l=new Date(y,m+n,0).getDate();return fISO(new Date(y,m-1+n,Math.min(d,l)))};
