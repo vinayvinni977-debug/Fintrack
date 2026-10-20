@@ -8,40 +8,76 @@
 <link rel="icon" href="icon-192.png">
 <link rel="manifest" href="manifest.json">
 <style>
-:root{--bg:#f4f5f2;--cd:#fff;--tx:#14201b;--mu:#66736c;--bd:#e2e6e1;--g:#0a7a4f;--r:#c0392b;--ac:#14201b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-@media(prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0e1311;--cd:#171e1b;--tx:#eef2ef;--mu:#8a9891;--bd:#26302c;--g:#3ddc97;--r:#ff7b6b;--ac:#eef2ef}}
-*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:15px/1.4 "Segoe UI",system-ui,sans-serif}
-#main{padding:14px 14px 96px;max-width:560px;margin:auto;animation:in .25s}
-@keyframes in{from{opacity:0;transform:translateY(6px)}}
-h1{font:700 26px Georgia,serif;margin:6px 0}h2{font:700 34px Georgia,serif;margin:4px 0}h3{margin:14px 0 6px}
-.mu,small{color:var(--mu)}.card{background:var(--cd);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:8px 0}
-.hero{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hero .card{margin:0}.g{border-top:4px solid var(--g)}.r{border-top:4px solid var(--r)}
-.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:11px 0;border-bottom:1px solid var(--bd)}.row:last-child{border:0}
+:root{--bg:#07080a;--card:rgba(255,255,255,.035);--card2:rgba(255,255,255,.06);--bd:rgba(255,255,255,.1);--tx:#f2f3f1;--mu:#8d968f;--g:#27c984;--r:#ef4b43;--ac:#f2f3f1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:light){:root[data-theme="light"]{--bg:#f4f5f2;--card:rgba(10,20,15,.035);--card2:rgba(10,20,15,.06);--bd:rgba(10,20,15,.12);--tx:#10140f;--mu:#596357;--g:#0f9d6a;--r:#c43a30}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;color:var(--tx);font:15px/1.45 "Segoe UI",system-ui,sans-serif;background:var(--bg)}
+html{background:radial-gradient(900px 500px at 20% -10%,rgba(39,201,132,.12) 0%,transparent 60%),var(--bg);background-attachment:fixed}
+#main{padding:18px 16px 112px;max-width:560px;margin:auto;animation:rise .4s cubic-bezier(.16,1,.3,1) both}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+h1{font:800 26px/1.1 "Segoe UI",system-ui,sans-serif;margin:10px 0 2px;letter-spacing:-.3px}
+h2{font:800 40px/1 "Segoe UI",system-ui,sans-serif;margin:6px 0;letter-spacing:-1px}
+h3{margin:20px 0 8px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.4px;color:var(--mu)}
+.mu,small{color:var(--mu)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;margin:10px 0;
+ animation:rise .35s cubic-bezier(.16,1,.3,1) both}
+.hero{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hero .card{margin:0}
+.card.g{border-top:2px solid var(--g);background:linear-gradient(180deg,rgba(39,201,132,.09),var(--card) 60%)}
+.card.r{border-top:2px solid var(--r);background:linear-gradient(180deg,rgba(239,75,67,.09),var(--card) 60%)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 0;border-bottom:1px solid var(--bd)}
+.row:last-child{border:0}
 .gt{color:var(--g)}.rt{color:var(--r)}
-button,select,input{font:inherit;color:var(--tx);background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:11px;min-height:44px}
-button{cursor:pointer;transition:transform .1s}button:active{transform:scale(.96)}button:disabled{opacity:.4}
-button.pri{background:var(--ac);color:var(--bg);width:100%;margin-top:10px;font-weight:600}button.sm{min-height:36px;padding:6px 12px}
-.chips{display:flex;gap:6px;overflow-x:auto;margin:8px 0}.chips button{white-space:nowrap;min-height:36px;padding:6px 12px;border-radius:99px}.chips .on{background:var(--ac);color:var(--bg)}
-input,select{width:100%;margin:5px 0}label{display:block;color:var(--mu);font-size:13px}
-nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--cd);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom,0px)}
-nav button{flex:1;border:0;border-radius:0;background:none;font-size:12px;min-height:56px}nav .on{color:var(--g);font-weight:700}
-nav .plus{background:var(--ac);color:var(--bg);border-radius:50%;flex:0 0 52px;min-height:52px;font-size:26px;margin:-16px 4px 0}
-#sh{position:fixed;inset:0;background:#0008;display:none;align-items:flex-end;z-index:5}#sh.o{display:flex}
-#sh>div{background:var(--bg);width:100%;max-height:90%;overflow:auto;border-radius:18px 18px 0 0;padding:16px;max-width:560px;margin:auto;animation:in .2s}
-.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}.tl{padding:8px 0 8px 12px;border-left:2px solid var(--bd)}a{color:var(--g);cursor:pointer;text-decoration:underline}
-.pill{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--bd)}.due{animation:pl 1.6s 2}@keyframes pl{50%{box-shadow:0 0 0 5px #0a7a4f33}}
-.paid{color:var(--g);font-weight:700;padding:8px 12px}
-#t{position:fixed;left:12px;right:12px;bottom:80px;background:var(--ac);color:var(--bg);padding:12px 14px;border-radius:12px;display:none;justify-content:space-between;align-items:center;z-index:9;max-width:536px;margin:auto}
-#t button{background:none;color:inherit;border:1px solid;min-height:32px;padding:4px 10px}
-textarea{width:100%;height:160px;background:var(--cd);color:var(--tx);border:1px solid var(--bd);border-radius:10px;padding:8px}
+button,select,input{font:inherit;color:var(--tx);background:var(--card2);border:1px solid var(--bd);border-radius:10px;padding:11px;min-height:44px}
+button{cursor:pointer;transition:transform .12s,filter .15s}
+button:active{transform:scale(.96);filter:brightness(1.1)}
+button:disabled{opacity:.4}
+button.pri{background:var(--tx);color:var(--bg);border:none;width:100%;margin-top:10px;font-weight:700}
+button.sm{min-height:36px;padding:6px 12px}
+.chips{display:flex;gap:6px;overflow-x:auto;margin:10px 0}
+.chips button{white-space:nowrap;min-height:34px;padding:6px 14px;border-radius:99px;font-size:13px}
+.chips .on{background:var(--tx);color:var(--bg);border-color:transparent;font-weight:700}
+input,select{width:100%;margin:6px 0}
+label{display:block;color:var(--mu);font-size:12px;text-transform:uppercase;letter-spacing:.6px;margin-top:10px}
+nav{position:fixed;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;
+ background:rgba(10,12,11,.82);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+ border:1px solid var(--bd);border-radius:26px;padding:6px;box-shadow:0 16px 40px -16px rgba(0,0,0,.7);max-width:536px;margin:auto}
+@media(prefers-color-scheme:light){:root[data-theme="light"] nav{background:rgba(244,245,242,.88)}}
+nav button{flex:1;border:0;border-radius:20px;background:none;font-size:11px;min-height:48px;transition:background .2s,color .2s}
+nav .on{color:var(--g);font-weight:700;background:rgba(39,201,132,.14)}
+nav .plus{background:var(--g);color:#06241a;border-radius:50%;flex:0 0 48px;min-height:48px;font-size:23px;margin:-12px 4px 0}
+#sh{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:flex-end;z-index:5}
+#sh.o{display:flex;animation:fadeIn .2s}
+@keyframes fadeIn{from{opacity:0}}
+#sh>div{background:#0c0d0f;width:100%;max-height:90%;overflow:auto;border-radius:20px 20px 0 0;padding:18px;max-width:560px;margin:auto;
+ border-top:1px solid var(--bd);box-shadow:0 -20px 50px -20px rgba(0,0,0,.7);animation:slideUp .3s cubic-bezier(.16,1,.3,1)}
+@media(prefers-color-scheme:light){:root[data-theme="light"] #sh>div{background:#fff}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.tl{padding:9px 0 9px 14px;border-left:2px solid var(--bd)}
+a{color:var(--g);cursor:pointer;text-decoration:underline}
+.pill{font-size:11px;padding:3px 10px;border-radius:99px;border:1px solid var(--bd);background:var(--card2);text-transform:uppercase;letter-spacing:.5px}
+.due{animation:glow 1.8s ease-in-out 2}
+@keyframes glow{50%{box-shadow:0 0 0 5px rgba(39,201,132,.15)}}
+.paid{color:var(--g);font-weight:700;padding:10px 0}
+#t{position:fixed;left:14px;right:14px;bottom:88px;background:#15171a;color:var(--tx);padding:13px 16px;border-radius:14px;
+ border:1px solid var(--bd);display:none;justify-content:space-between;align-items:center;z-index:9;max-width:536px;margin:auto;
+ box-shadow:0 16px 40px -16px rgba(0,0,0,.7);animation:rise .22s cubic-bezier(.16,1,.3,1)}
+#t button{background:none;color:var(--g);border:1px solid var(--g);min-height:32px;padding:4px 12px}
+textarea{width:100%;height:160px;background:var(--card2);color:var(--tx);border:1px solid var(--bd);border-radius:10px;padding:10px}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.hero h2{font-size:clamp(20px,7.5vw,34px);word-break:break-word}
 </style></head><body>
-<div id="main"></div><div id="sh" onclick="if(event.target==this)closeSh()"><div id="shc"></div></div><div id="t"></div>
+<div id="main"></div><div id="sh" onclick="if(event.target==this){duePending=false;closeSh()}"><div id="shc"></div></div><div id="t"></div>
 <nav><button data-t="dash" onclick="go('dash')">Home</button><button data-t="people" onclick="go('people')">People</button><button class="plus" onclick="openAdd()" aria-label="Add">+</button><button data-t="txns" onclick="go('txns')">Txns</button><button data-t="due" onclick="go('due')">Due</button><button data-t="more" onclick="go('more')">More</button></nav>
 <script>
 const $=s=>document.querySelector(s),K='fintrack_v1';
 let db=null;try{db=JSON.parse(localStorage.getItem(K))}catch(e){}
-db=db||{people:[],obs:[],pays:[],ints:[],audit:[]};
+db=db||{people:[],obs:[],pays:[],ints:[],audit:[],self:[],recentSpends:0,rsLog:[]};
+if(!db.self)db.self=[];
+if(db.recentSpends==null)db.recentSpends=0;
+if(!db.rsLog)db.rsLog=[];
 var ghT;const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){toast('Could not save to browser storage. Export a backup.')}clearTimeout(ghT);ghT=setTimeout(()=>{if(localStorage.getItem('gh_tok'))ghBackup(1)},5000)};
 const uid=()=>Math.random().toString(36).slice(2,10)+Date.now().toString(36).slice(-3);
 const p2=n=>String(n).padStart(2,'0'),fISO=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate()),today=()=>fISO(new Date());
@@ -56,9 +92,9 @@ const live=o=>!o.deleted,act=o=>live(o)&&bal(o)>0;
 const pName=id=>(db.people.find(p=>p.id===id)||{name:'(missing)'}).name;
 const pBal=(id,d)=>db.obs.filter(o=>o.pid===id&&o.dir===d&&live(o)).reduce((s,o)=>s+bal(o),0);
 const actObs=(id,d)=>db.obs.filter(o=>o.pid===id&&o.dir===d&&act(o)).sort((a,b)=>a.due<b.due?-1:1);
-function accrue(){let c=0;db.obs.forEach(o=>{if(o.deleted)return;let g=0;while((o.interest||o.pct)&&o.due<today()&&g++<240){const b=bal(o,o.due),a=o.pct?Math.round(b*o.pct/100):o.interest;if(b>0&&a>0)db.ints.push({id:uid(),oid:o.id,date:o.due,amt:a});o.due=addM(o.due,1);c=1}});if(c)save()}
+function accrue(){}
 let snap=null;
-function commit(msg,fn,audit){snap=JSON.stringify(db);fn();if(audit)db.audit.push({id:uid(),at:new Date().toISOString(),t:audit});accrue();save();closeSh();render();toast(msg,1)}
+function commit(msg,fn,audit){snap=JSON.stringify(db);fn();if(audit)db.audit.push({id:uid(),at:new Date().toISOString(),t:audit});accrue();save();closeSh();render();toast(msg,1);if(duePending){duePending=false;DQI++;setTimeout(showDue,300)}}
 function toast(m,u){const t=$('#t');t.innerHTML=`<span>${esc(m)}</span>${u?'<button onclick="undo()">Undo</button>':''}`;t.style.display='flex';clearTimeout(t.h);t.h=setTimeout(()=>t.style.display='none',u?7000:4000)}
 function undo(){if(!snap)return;db=JSON.parse(snap);snap=null;save();render();toast('Undone')}
 const S={tab:'dash',pid:null,f:'all',q:'',tf:'all'};
@@ -81,7 +117,7 @@ function vDash(){const h=new Date().getHours(),L=sumDir('lent'),O=sumDir('owe');
  const top=d=>db.people.map(p=>[p,pBal(p.id,d)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([p,b])=>`<div class="row" onclick="openP('${p.id}')"><span>${esc(p.name)}</span><b>${R(b)}</b></div>`).join('');
  const dt=db.obs.filter(o=>act(o)&&o.due===today());
  return `<h1>FinTrack</h1><p class="mu">Good ${h<12?'morning':h<17?'afternoon':'evening'}</p>
- <div class="hero"><div class="card g"><small>Others owe me</small><h2 class="gt" data-n="${L}">${R(L)}</h2><small>${cnt('lent')} people</small></div><div class="card r"><small>I owe</small><h2 class="rt" data-n="${O}">${R(O)}</h2><small>${cnt('owe')} people</small></div></div>
+ <div class="hero"><div class="card g"><small>Others owe me</small><h2 class="gt" data-n="${L}">${R(L)}</h2><small>${cnt('lent')} people</small></div><div class="card r" onclick="openRS()"><small>Spends by me</small><h2 class="rt" data-n="${(db.recentSpends||0)-L}">${R((db.recentSpends||0)-L)}</h2><small>Recent spends ${R(db.recentSpends||0)} · tap to update</small>${rsStaleNote()}</div></div>
  ${dt.length?`<h3>Due today</h3>${dt.map(o=>`<div class="card due"><b>${esc(pName(o.pid))}</b> <small>${esc(o.desc||'')}</small><h3 style="margin:4px 0">${R(bal(o))} <span class="pill">Unpaid</span></h3><button class="sm" onclick="openRepay('${o.pid}','${o.dir}')">Record payment</button> <button class="sm" onclick="remind('${o.id}')">Remind</button></div>`).join('')}`:''}
  ${top('lent')?`<h3>Others owe me</h3><div class="card">${top('lent')}</div>`:''}${top('owe')?`<h3>I owe</h3><div class="card">${top('owe')}</div>`:''}
  ${!db.obs.length?'<div class="card"><b>Your ledger is empty.</b><br><small>Tap + to record money you lent or owe.</small></div>':''}
@@ -90,9 +126,9 @@ function chips(k,arr){return `<div class="chips">${arr.map(([v,l])=>`<button cla
 function srch(){return `<input placeholder="Search name, description, notes" value="${esc(S.q)}" oninput="S.q=this.value;clearTimeout(window.st);window.st=setTimeout(()=>{const p=this.selectionStart;render();const i=$('input');i.focus();i.setSelectionRange(p,p)},250)">`}
 const hit=o=>!S.q||(pName(o.pid)+' '+o.desc+' '+o.notes).toLowerCase().includes(S.q.toLowerCase());
 function vPeople(){const f=S.f;const ps=db.people.filter(p=>(!S.q||p.name.toLowerCase().includes(S.q.toLowerCase())||db.obs.some(o=>o.pid===p.id&&hit(o)))&&(f=='all'||(f=='lent'&&pBal(p.id,'lent')>0)||(f=='owe'&&pBal(p.id,'owe')>0)||(f=='settled'&&!pBal(p.id,'lent')&&!pBal(p.id,'owe'))));
- return `<h1>People</h1>${srch()}${chips('f',[['all','All'],['lent','Others owe me'],['owe','I owe'],['settled','Settled']])}<div class="card">${ps.map(p=>{const a=pBal(p.id,'lent'),b=pBal(p.id,'owe');return `<div class="row" onclick="openP('${p.id}')"><b>${esc(p.name)}</b><span>${a?`<b class="gt">${R(a)}</b> `:''}${b?`<b class="rt">${R(b)}</b>`:''}${!a&&!b?'<span class="pill">Settled</span>':''}</span></div>`}).join('')||'<p class="mu">No one here yet.</p>'}</div>`}
+ return `<h1>People</h1>${srch()}${chips('f',[['all','All'],['lent','Others owe me'],['settled','Settled']])}<div class="card">${ps.map(p=>{const a=pBal(p.id,'lent');return `<div class="row" onclick="openP('${p.id}')"><b>${esc(p.name)}</b><span>${a?`<b class="gt">${R(a)}</b>`:'<span class="pill">Settled</span>'}</span></div>`}).join('')||'<p class="mu">No one here yet.</p>'}</div>`}
 function vTxns(){const f=S.tf,os=db.obs.filter(o=>hit(o)&&(f=='del'?o.deleted:live(o)&&(f=='all'||(f=='unpaid'&&bal(o)>0)||(f=='paid'&&bal(o)<=0)||(f=='lent'&&o.dir=='lent')||(f=='owe'&&o.dir=='owe')))).sort((a,b)=>a.date<b.date?1:-1);
- return `<h1>Transactions</h1>${srch()}${chips('tf',[['all','All'],['unpaid','Unpaid'],['paid','Paid'],['lent','Others owe me'],['owe','I owe'],['del','Deleted']])}<div class="card">${os.map(o=>obRow(o)).join('')||'<p class="mu">Nothing found.</p>'}</div>`}
+ return `<h1>Transactions</h1>${srch()}${chips('tf',[['all','All'],['unpaid','Unpaid'],['paid','Paid'],['del','Deleted']])}<div class="card">${os.map(o=>obRow(o)).join('')||'<p class="mu">Nothing found.</p>'}</div>`}
 function vDue(){const os=db.obs.filter(act).sort((a,b)=>a.due<b.due?-1:1),g=(l,fn)=>{const x=os.filter(fn);return x.length?`<h3>${l}</h3><div class="card">${x.map(o=>obRow(o)).join('')}</div>`:''};
  return `<h1>Due</h1>${g('Past due',o=>o.due<today())}${g('Due today',o=>o.due==today())}${g('Upcoming',o=>o.due>today())}${os.length?'':'<div class="card">Nothing is due. Your ledger is clear ✓</div>'}`}
 function vPerson(){const p=db.people.find(x=>x.id===S.pid);if(!p){S.pid=null;return vDash()}
@@ -102,7 +138,7 @@ function vPerson(){const p=db.people.find(x=>x.id===S.pid);if(!p){S.pid=null;ret
   <small>${d=='lent'?'Total lent':'Total borrowed'} ${R(x.reduce((s,o)=>s+o.principal,0))} · Repaid ${R(x.reduce((s,o)=>s+paidOf(o),0))} · Active ${a.length} · Next due ${fd(nx)}</small>
   ${b>0?`<br><button class="sm" onclick="openRepay('${p.id}','${d}')">Record payment</button> <button class="sm" onclick="settle('${p.id}','${d}')">Settle account</button>`:'<div class="paid">✓ Settled</div>'}</div>`};
  const hs=[];db.pays.filter(y=>y.pid===p.id).forEach(y=>hs.push([y.date,(y.settle?'Settled ':'Payment ')+R(y.amt)]));db.ints.forEach(i=>{const o=db.obs.find(x=>x.id===i.oid);if(o&&o.pid===p.id&&live(o))hs.push([i.date,'Interest +'+R(i.amt)])});hs.sort().reverse();
- return `<button class="sm" onclick="S.pid=null;render()">← Back</button><h1>${esc(p.name)}</h1><button class="sm" onclick="openMerge('${p.id}')">Merge duplicate</button>${blk('lent')}${blk('owe')}
+ return `<button class="sm" onclick="S.pid=null;render()">← Back</button><h1>${esc(p.name)}</h1><button class="sm" onclick="openMerge('${p.id}')">Merge duplicate</button>${blk('lent')}
  <h3>Active transactions</h3><div class="card">${os.filter(act).map(o=>obRow(o)).join('')||'<small>None</small>'}</div>
  <h3>Settled transactions</h3><div class="card">${os.filter(o=>!act(o)).map(o=>obRow(o)).join('')||'<small>None</small>'}</div>
  <h3>Payments &amp; interest</h3><div class="card">${hs.map(h=>`<div class="row"><span>${esc(h[1])}</span><small>${fd(h[0])}</small></div>`).join('')||'<small>None</small>'}</div>`}
@@ -143,11 +179,11 @@ function cardHtml(){return `<h3>Credit card split</h3><input id="cn" placeholder
  <small>Split across people — each gets their own due date later via Edit</small><div id="csrows">${csRows()}</div>
  <button class="sm" onclick="CS.push({pid:'',amt:''});csRender()">+ Add person</button><p id="cv" class="mu"></p><button class="pri" id="sv" onclick="saveCard()">Save split</button>`}
 function csRows(){return CS.map((r,i)=>`<div class="row"><select onchange="CS[${i}].pid=this.value;csRender()" style="width:${r.pid=='__new'?'0;display:none':'40%'}"><option value="">Person…</option>${db.people.map(p=>`<option value="${p.id}" ${p.id==r.pid?'selected':''}>${esc(p.name)}</option>`).join('')}<option value="__new" ${r.pid=='__new'?'selected':''}>+ New person</option></select>${r.pid=='__new'?`<input placeholder="New person name" value="${esc(r.nm||'')}" oninput="CS[${i}].nm=this.value" style="width:40%">`:''}<input type="number" step="any" placeholder="₹" value="${r.amt}" oninput="CS[${i}].amt=this.value;csRender()" style="width:30%"><button class="sm" onclick="CS.splice(${i},1);csRender()">✕</button></div>`).join('')}
-function csRender(){const h=$('#csrows');if(h)h.innerHTML=csRows();const t=P($('#ca').value)||0,s=CS.reduce((a,r)=>a+(P(r.amt)||0),0),rem=t-s;const v=$('#cv');if(v)v.innerHTML=rem===0?'Matched: ₹0 remaining':`<b class="rt">⚠ Allocation mismatch: ${R(Math.abs(rem))} ${rem>0?'unallocated':'over-allocated'}</b>`}
-function saveCard(){const sv=$('#sv');if(sv.disabled)return;const nm_=$('#cn').value.trim(),t=P($('#ca').value),dt=$('#cd').value,du=$('#cu').value,t2=CS.reduce((a,r)=>a+(P(r.amt)||0),0);
- if(!nm_||!(t>0)||!dt||!du)return toast('Enter card name, amount and dates');if(t2!==t)return toast('Allocation mismatch — the split must add up to the total');
- if(CS.some(r=>!r.pid||!(P(r.amt)>0)||(r.pid=='__new'&&!r.nm?.trim())))return toast('Each row needs a person and amount');
- sv.disabled=true;commit(`Card split saved for ${nm_}`,()=>{const pid=uid();CS.forEach(r=>{let p=r.pid=='__new'?null:db.people.find(x=>x.id===r.pid);if(!p){p={id:uid(),name:r.nm.trim()};db.people.push(p)}db.obs.push({id:uid(),pid:p.id,dir:'lent',principal:P(r.amt),date:dt,due:du,interest:0,pct:0,desc:nm_,notes:'Credit card split · parent total '+R(t2),deleted:0,parent:pid})})},`Card split ${nm_} ${R(t)} across ${CS.length} people`);CS=[{pid:'',amt:''}]}
+function csRender(){const h=$('#csrows');if(h)h.innerHTML=csRows();const t=P($('#ca').value)||0,s=CS.reduce((a,r)=>a+(P(r.amt)||0),0),rem=t-s;const v=$('#cv');if(v)v.innerHTML=rem<0?`<b class="rt">⚠ Allocated ${R(-rem)} more than the total bill</b>`:`Others owe: ${R(s)} · <b>Your own spend: ${R(rem)}</b>`}
+function saveCard(){const sv=$('#sv');if(sv.disabled)return;const nm_=$('#cn').value.trim(),t=P($('#ca').value),dt=$('#cd').value,du=$('#cu').value,rows=CS.filter(r=>r.pid&&P(r.amt)>0),t2=rows.reduce((a,r)=>a+(P(r.amt)||0),0),mySpend=t-t2;
+ if(!nm_||!(t>0)||!dt||!du)return toast('Enter card name, amount and dates');if(t2>t)return toast('Allocated more than the total bill');
+ if(rows.some(r=>r.pid=='__new'&&!r.nm?.trim()))return toast('Enter a name for each new person');
+ sv.disabled=true;commit(`Card split saved for ${nm_}`,()=>{const pid=uid();rows.forEach(r=>{let p=r.pid=='__new'?null:db.people.find(x=>x.id===r.pid);if(!p){p={id:uid(),name:r.nm.trim()};db.people.push(p)}db.obs.push({id:uid(),pid:p.id,dir:'lent',principal:P(r.amt),date:dt,due:du,interest:0,pct:0,desc:nm_,notes:'Credit card split · total bill '+R(t),deleted:0,parent:pid})});if(mySpend>0)db.self.push({id:uid(),date:dt,amt:mySpend,desc:nm_})},`Card split ${nm_}: total ${R(t)}, others owe ${R(t2)}, your spend ${R(mySpend)}`);CS=[{pid:'',amt:''}]}
 
 
 function openMerge(id){const me=db.people.find(x=>x.id===id),ot=db.people.filter(x=>x.id!==id);
@@ -158,7 +194,74 @@ function confirmMerge(id){const dup=$('#mg').value,me=db.people.find(x=>x.id===i
   db.obs.filter(o=>o.pid===dup).forEach(o=>o.pid=id);db.pays.filter(p=>p.pid===dup).forEach(p=>p.pid=id);
   db.people=db.people.filter(p=>p.id!==dup)},`Merged person ${d.name} into ${me.name}`))}
 
-function openAdd(){sheet(`<h3>Add</h3><div class="g3"><button onclick="openLend('lent')">I lent</button><button onclick="openLend('owe')">I owe</button><button onclick="openRepay()">Repayment</button></div><button class="sm" style="margin-top:8px;width:100%" onclick="openCard()">Credit card split</button>`)}
+
+let DQ=[],DQI=0,duePending=false;
+function computeDQ(){return db.obs.filter(o=>act(o)&&o.due<=today()).sort((a,b)=>a.due<b.due?-1:1)}
+function startDue(){const q=computeDQ();if(!q.length)return;DQ=q;DQI=0;showDue()}
+function showDue(){if(DQI>=DQ.length){DQ=[];closeSh();return}const o=DQ[DQI];
+ sheet(`<h3>Payment check</h3><p><b>${esc(pName(o.pid))}</b> ${esc(o.desc||'')}<br>${R(bal(o))} was due ${fd(o.due)}.</p>
+ <p>${o.dir=='lent'?'Did they pay you?':'Did you pay them?'}</p>
+ <button class="pri" onclick="dueReceived('${o.id}')">Received</button>
+ <button class="pri" style="background:var(--cd);color:var(--tx);margin-top:6px" onclick="dueUnpaid('${o.id}')">Still unpaid</button>
+ ${DQ.length-DQI-1>0?`<small style="display:block;margin-top:8px">${DQ.length-DQI-1} more to check</small>`:''}`)}
+function dueReceived(id){const o=db.obs.find(x=>x.id===id);duePending=true;openRepay(o.pid,o.dir)}
+function dueUnpaid(id){const o=db.obs.find(x=>x.id===id),pi=db.ints.filter(i=>i.oid===o.id).sort((a,b)=>a.date<b.date?1:-1)[0],isPct=!!o.pct,defV=isPct?o.pct:((pi?pi.amt:(o.interest||0))/100);
+ sheet(`<h3>Confirm interest</h3><p><b>${esc(pName(o.pid))}</b> ${esc(o.desc||'')}<br>Balance ${R(bal(o))} was due ${fd(o.due)}.</p>
+ <div style="display:flex;gap:6px"><select id="dqt" onchange="dqPrev('${id}')"><option value="p" ${isPct?'selected':''}>% of balance</option><option value="a" ${!isPct?'selected':''}>Fixed ₹</option></select>
+ <input id="dqv" type="number" step="any" value="${defV}" oninput="dqPrev('${id}')"></div>
+ ${pi?`<small>Last time (${fd(pi.date)}): ${R(pi.amt)}</small>`:''}
+ <p id="dqp" class="mu"></p>
+ <button class="pri" onclick="dueConfirm('${id}')">Confirm &amp; postpone to next month</button>`);dqPrev(id)}
+function dqPrev(id){const o=db.obs.find(x=>x.id===id),t=$('#dqt').value,v=parseFloat($('#dqv').value)||0,amt=t=='p'?Math.round(bal(o)*v/100):Math.round(v*100);
+ $('#dqp').innerHTML=`Interest ${R(amt)} · New balance ${R(bal(o)+amt)}`}
+function dueConfirm(id){const o=db.obs.find(x=>x.id===id),t=$('#dqt').value,v=parseFloat($('#dqv').value)||0,n=t=='p'?Math.round(bal(o)*v/100):Math.round(v*100);
+ if(!(n>=0)||!(v>=0)||(t=='p'&&v>100))return toast('Enter a valid amount');
+ duePending=true;const nd=addM(o.due,1);commit('Postponed with interest',()=>{db.ints.push({id:uid(),oid:o.id,date:o.due,amt:n});o.due=nd;if(t=='p'){o.pct=v;o.interest=0}else{o.interest=n;o.pct=0}},`Postponed ${pName(o.pid)} · +${R(n)} interest · next due ${fd(nd)}`)}
+
+
+function openRS(){const hist=db.rsLog.slice().sort((a,b)=>a.date<b.date?1:-1).slice(0,5);
+ sheet(`<h3>Recent spends</h3><small>Enter your latest total bill or spend figure — each entry is dated, so it also builds your monthly trend.</small>
+ <label>Amount ₹<input id="rsv" type="number" step="any" value="${(db.recentSpends||0)/100}"></label>
+ <label>Date<input id="rsd" type="date" value="${today()}"></label>
+ <button class="pri" onclick="saveRS()">Save</button>
+ ${hist.length?`<h3>Recent entries</h3><div class="card">${hist.map(x=>`<div class="row"><span>${R(x.amt)}</span><span><small>${fd(x.date)}</small> <a onclick="editRS('${x.id}')">edit</a> <a onclick="delRS('${x.id}')">delete</a></span></div>`).join('')}</div>`:''}`)}
+function saveRS(){const v=P($('#rsv').value),dt=$('#rsd').value;if(!(v>=0)||!dt)return toast('Enter a valid amount and date');
+ commit('Recent spends updated',()=>{db.rsLog.push({id:uid(),date:dt,amt:v});rsRecalc()},`Recent spends ${R(v)} logged for ${fd(dt)}`)}
+function rsRecalc(){const latest=db.rsLog.slice().sort((a,b)=>a.date<b.date?1:-1)[0];db.recentSpends=latest?latest.amt:0}
+function editRS(id){const x=db.rsLog.find(e=>e.id===id);sheet(`<h3>Edit entry</h3><label>Amount ₹<input id="erv" type="number" step="any" value="${x.amt/100}"></label><label>Date<input id="erd" type="date" value="${x.date}"></label><button class="pri" onclick="saveEditRS('${id}')">Save</button>`)}
+function saveEditRS(id){const v=P($('#erv').value),dt=$('#erd').value;if(!(v>=0)||!dt)return toast('Enter a valid amount and date');
+ commit('Entry updated',()=>{const x=db.rsLog.find(e=>e.id===id);x.amt=v;x.date=dt;rsRecalc()},`Recent spends entry edited: ${R(v)} on ${fd(dt)}`)}
+function delRS(id){sure('Delete this entry?',()=>commit('Entry deleted',()=>{db.rsLog=db.rsLog.filter(e=>e.id!==id);rsRecalc()},'Deleted a recent spends entry'))}
+
+
+function rsTrendRows(){const mlist=[];for(let i=5;i>=0;i--){const d=addM(today().slice(0,8)+'01',-i);mlist.push(d.slice(0,7))}
+ const forMonth=m=>{const es=db.rsLog.filter(x=>x.date.slice(0,7)===m).sort((a,b)=>a.date<b.date?1:-1);return es.length?es[0].amt:null};
+ let prev=null;return mlist.map(m=>{const v=forMonth(m),[y,mo]=m.split('-'),lab=new Date(+y,+mo-1,1).toLocaleString('en',{month:'short',year:'2-digit'});
+  let delta='';if(v!=null&&prev!=null)delta=v>=prev?`<small class="rt">▲ ${R(v-prev)}</small>`:`<small class="gt">▼ ${R(prev-v)}</small>`;
+  if(v!=null)prev=v;
+  return `<div class="row"><span>${lab}</span><span>${v!=null?R(v)+' '+delta:'<small class="mu">no entry</small>'}</span></div>`}).join('')}
+
+
+function rsStaleNote(){const latest=db.rsLog.slice().sort((a,b)=>a.date<b.date?1:-1)[0];
+ if(!latest)return '<br><small class="rt">⚠ Never logged</small>';
+ const days=Math.round((new Date(today())-new Date(latest.date))/86400000);
+ return days>30?`<br><small class="rt">⚠ Last updated ${days} days ago</small>`:'';}
+
+
+function pacePct(o){const a=new Date(o.date),b=new Date(o.due),n=new Date(today());if(b<=a)return 100;
+ return Math.max(0,Math.min(100,Math.round((n-a)/(b-a)*100)))}
+function paceColor(pct,overdue){if(overdue)return 'var(--o2)';return pct<60?'var(--g1)':pct<90?'var(--o1)':'var(--o2)'}
+function paceBar(o){if(bal(o)<=0)return'';const pct=pacePct(o),over=o.due<today();
+ return `<div class="pbar"><div style="width:${pct}%;background:${paceColor(pct,over)}"></div></div>`}
+let XP=null;
+function togglePersonExpand(pid){XP=XP===pid?null:pid;render()}
+function personExpandHtml(p){const os=actObs(p.id,'lent');
+ return `<div class="xp ${XP===p.id?'o':''}"><div class="xp-in">
+ ${os.map(o=>`<div class="row" style="cursor:default" onclick="event.stopPropagation()"><div style="flex:1"><small>${esc(o.desc||'Transaction')}</small><br><b>${R(bal(o))}</b> <small class="mu">· due ${fd(o.due)}</small>${paceBar(o)}</div></div>`).join('')||'<small class="mu">No active transactions</small>'}
+ <div class="row" style="border:0;cursor:default;gap:8px" onclick="event.stopPropagation()"><button class="sm" onclick="openRepay('${p.id}','lent')">Record payment</button><button class="sm" onclick="openP('${p.id}')">View full profile</button></div>
+ </div></div>`}
+
+function openAdd(){sheet(`<h3>Add</h3><div class="g3" style="grid-template-columns:1fr 1fr"><button onclick="openLend('lent')">I lent</button><button onclick="openRepay()">Repayment</button></div><button class="sm" style="margin-top:8px;width:100%" onclick="openCard()">Credit card split</button>`)}
 function openLend(d){sheet(`<h3>${d=='lent'?'I lent':'I owe'}</h3><input id="fn" list="pl" placeholder="Person" autocomplete="off"><datalist id="pl">${db.people.map(p=>`<option value="${esc(p.name)}">`).join('')}</datalist>
  <input id="fa" type="number" inputmode="decimal" placeholder="Amount ₹" oninput="lPrev()"><label>Date<input id="fdt" type="date" value="${today()}"></label><label>First due date<input id="fu" type="date" value="${nm(today(),2)}" oninput="lPrev()"></label>
  <div style="display:flex;gap:6px"><select id="ft" style="width:110px" onchange="lPrev()"><option value="p">% / month</option><option value="a">₹ / month</option></select><input id="fi" type="number" step="any" inputmode="decimal" placeholder="Interest (optional)" oninput="lPrev()"></div><p id="ip" class="mu"></p><input id="fx" placeholder="Description"><input id="fo" placeholder="Notes (optional)"><button class="pri" id="sv" onclick="saveLend('${d}')">Save</button>`)}
@@ -168,7 +271,7 @@ function saveLend(d){const sv=$('#sv');if(sv.disabled)return;const nm=$('#fn').v
   const o={id:uid(),pid:p.id,dir:d,principal:a,date:dt,due:du,interest:i,pct:pc?iv:0,desc:$('#fx').value.trim(),notes:$('#fo').value.trim(),deleted:0};db.obs.push(o);const c=pc?Math.round(a*iv/100):i;if(c>0)db.ints.push({id:uid(),oid:o.id,date:dt,amt:c})},`Created ${d} ${R(a)} ${nm}`)}
 let RP={};function openRepay(pid,d){RP={pid:pid||null,dir:d||'lent'};rpDraw()}
 function rpDraw(){const ps=db.people.filter(p=>pBal(p.id,RP.dir)>0);if(!ps.find(p=>p.id===RP.pid))RP.pid=ps[0]&&ps[0].id;const os=RP.pid?actObs(RP.pid,RP.dir):[];
- sheet(`<h3>Repayment</h3><select onchange="RP.dir=this.value;rpDraw()"><option value="lent" ${RP.dir=='lent'?'selected':''}>They paid me</option><option value="owe" ${RP.dir=='owe'?'selected':''}>I paid them</option></select>
+ RP.dir='lent';sheet(`<h3>Repayment</h3>
  ${ps.length?`<select onchange="RP.pid=this.value;rpDraw()">${ps.map(p=>`<option value="${p.id}" ${p.id==RP.pid?'selected':''}>${esc(p.name)}</option>`).join('')}</select><p>Current balance <b>${R(pBal(RP.pid,RP.dir))}</b></p>
  <input id="ra" type="number" inputmode="decimal" placeholder="Repayment ₹" oninput="autoAlloc()"><input id="rd" type="date" value="${today()}"><small>Allocation (earliest due first, editable)</small>
  ${os.map(o=>`<div class="row"><span>${esc(o.desc||'Txn')} <small>${R(bal(o))} · due ${fd(o.due)}</small></span><input style="width:110px" class="ai" data-b="${bal(o)}" data-o="${o.id}" type="number" step="any" oninput="chk()"></div>`).join('')}
@@ -196,7 +299,17 @@ function monthSummary(){const[y,mo]=SM.split('-'),lab=new Date(+y,+mo-1,1).toLoc
  <div class="row"><span>Lent out</span><b class="gt">${R(lent)}</b></div><div class="row"><span>Received</span><b class="gt">${R(recv)}</b></div><div class="row"><span>Interest collected</span><b class="gt">${R(intr)}</b></div>
  <div class="row"><span>Borrowed</span><b class="rt">${R(borrowed)}</b></div><div class="row"><span>Paid out</span><b class="rt">${R(paid)}</b></div>`}
 
+
+function trendRows(){const mlist=[];for(let i=5;i>=0;i--){const d=addM(today().slice(0,8)+'01',-i);mlist.push(d.slice(0,7))}
+ const lent=m=>db.obs.filter(o=>live(o)&&o.dir=='lent'&&o.date.slice(0,7)===m).reduce((s,o)=>s+o.principal,0);
+ const mine=m=>db.self.filter(x=>x.date.slice(0,7)===m).reduce((s,x)=>s+x.amt,0);
+ let prev=null;return mlist.map(m=>{const b=lent(m)+mine(m),my=mine(m),[y,mo]=m.split('-'),lab=new Date(+y,+mo-1,1).toLocaleString('en',{month:'short',year:'2-digit'});
+  const delta=prev===null?'':(my>=prev?`<small class="rt">▲ ${R(my-prev)}</small>`:`<small class="gt">▼ ${R(prev-my)}</small>`);prev=my;
+  return `<div class="row"><span>${lab}</span><span>Billed ${R(b)}<br><b>Your spend ${R(my)}</b> ${delta}</span></div>`}).join('')}
+
 function vMore(){return `<h1>More</h1><h3>Monthly summary</h3><div class="card" id="msum">${monthSummary()}</div>
+<h3>Spending trend <small>(card bill minus what others owe you)</small></h3><div class="card">${trendRows()}</div>
+<h3>Recent spends trend <small>(from what you've logged)</small></h3><div class="card">${rsTrendRows()}</div>
 <div class="card"><div class="row"><span>Cloud backup <small>(daily, automatic)</small></span><span><button class="sm" onclick="cloudBackup()">Back up now</button> <button class="sm" onclick="cloudRestore()">Restore</button></span></div><div class="row"><span>Data check</span><button class="sm" onclick="showChk()">Run</button></div><div class="row"><span>Export JSON</span><button class="sm" onclick="exp('j')">Open</button></div><div class="row"><span>Export CSV</span><button class="sm" onclick="exp('c')">Open</button></div><div class="row"><span>Import / restore</span><button class="sm" onclick="imp()">Open</button></div></div>
  <h3>Audit trail</h3><div class="card">${db.audit.slice().reverse().slice(0,25).map(a=>`<div class="row"><span>${esc(a.t)}</span><small>${fd(a.at.slice(0,10))}</small></div>`).join('')||'<small>No entries yet.</small>'}</div><small>Data lives in this browser. Export a backup regularly.</small>`}
 function showChk(){const e=checks();sheet(`<h3>Data check</h3>${e.length?e.map(x=>`<div class="row rt">${esc(x)}</div>`).join('')+'<small>Nothing was changed automatically.</small>':'<div class="paid">✓ No problems found</div>'}`)}
@@ -210,5 +323,5 @@ function cloudBackup(a){if(!CDB)return a?0:toast('Cloud backup is not available 
 function cloudRestore(){if(!CDB)return toast('Cloud backup is not available here');CDB.doc('backups/latest').get().then(s=>{if(!s.exists)return toast('No cloud backup yet');const d=s.data();sure('Restore the cloud backup from '+fd(d.at.slice(0,10))+'? This replaces current data.',()=>commit('Cloud backup restored',()=>{db=Object.assign({audit:[]},JSON.parse(d.json))},'Restored cloud backup'))}).catch(()=>toast('Could not read the cloud backup'))}
 cloud();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{})}
-accrue();render();
+accrue();render();setTimeout(startDue,350);
 </script></body></html>
