@@ -131,10 +131,10 @@ function recent(){const e=[];db.obs.filter(live).forEach(o=>e.push({d:o.date,k:0
  return e.sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:b.k-a.k).slice(0,8).map(x=>`<div class="row"><span>${esc(x.t)}</span><small>${fd(x.d)}</small></div>`).join('')||'<p class="mu">No activity yet.</p>'}
 function vDash(){const h=new Date().getHours(),L=sumDir('lent'),O=sumDir('owe');
  const top=d=>db.people.map(p=>[p,pBal(p.id,d)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([p,b])=>`<div class="row" role="button" tabindex="0" aria-expanded="${XP===p.id+'|'+d}" onclick="togglePersonExpand('${p.id}','${d}',this)"><span>${esc(p.name)}</span><b>${R(b)}</b></div>${personExpandHtml(p,d)}`).join('');
- const ym=today().slice(0,7),mSelf=db.self.filter(x=>x.date.slice(0,7)===ym),useSelf=mSelf.length>0,sp=useSelf?mSelf.reduce((s,x)=>s+x.amt,0):(db.recentSpends||0);
+ const ym=today().slice(0,7),mSelf=db.self.filter(x=>x.date.slice(0,7)===ym),hasSelf=db.self.length>0,sp=hasSelf?mSelf.reduce((s,x)=>s+x.amt,0):(db.recentSpends||0);
  const dt=db.obs.filter(o=>act(o)&&o.due===today());
  return `<h1>FinTrack</h1><p class="mu">Good ${h<12?'morning':h<17?'afternoon':'evening'}</p>
- <div class="hero"><div class="card g"><small>Others owe me</small><h2 class="gt" data-n="${L}">${R(L)}</h2><small>${cnt('lent')} people</small></div><div class="card r" onclick="openRS()"><small>Spends by me</small><h2 class="rt" data-n="${sp}">${R(sp)}</h2><small>This month · tap to update</small>${useSelf?'':rsStaleNote()}</div></div>
+ <div class="hero"><div class="card g"><small>Others owe me</small><h2 class="gt" data-n="${L}">${R(L)}</h2><small>${cnt('lent')} people</small></div><div class="card r" onclick="openRS()"><small>Spends by me</small><h2 class="rt" data-n="${sp}">${R(sp)}</h2><small>This month · tap to update</small>${hasSelf?'':rsStaleNote()}</div></div>
  ${dt.length?`<h3>Due today</h3>${dt.map(o=>`<div class="card due"><b>${esc(pName(o.pid))}</b> <small>${esc(o.desc||'')}</small><h3 style="margin:4px 0">${R(bal(o))} <span class="pill">Unpaid</span></h3><button class="sm" onclick="openRepay('${o.pid}','${o.dir}')">Record payment</button> <button class="sm" onclick="remind('${o.id}')">Remind</button></div>`).join('')}`:''}
  ${top('lent')?`<h3>Others owe me</h3><div class="card">${top('lent')}</div>`:''}${top('owe')?`<h3>I owe</h3><div class="card">${top('owe')}</div>`:''}
  ${!db.obs.length?'<div class="card"><b>Your ledger is empty.</b><br><small>Tap + to record money you lent or owe.</small></div>':''}
